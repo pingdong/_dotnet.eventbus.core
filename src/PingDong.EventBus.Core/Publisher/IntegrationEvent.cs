@@ -5,20 +5,20 @@ namespace PingDong.EventBus
     public class IntegrationEvent
     {
         public IntegrationEvent() 
-            : this(Guid.NewGuid(), Guid.NewGuid())
+            : this(string.Empty, string.Empty)
         {
 
         }
 
-        public IntegrationEvent(Guid requestId, Guid correlationId)
+        public IntegrationEvent(string requestId, string correlationId)
         {
             RequestId = requestId;
             CreationDate = DateTime.UtcNow;
             CorrelationId = correlationId;
         }
 
-        public Guid RequestId  { get; set; }
-        public Guid CorrelationId { get; set; }
+        public string RequestId  { get; set; }
+        public string CorrelationId { get; set; }
         public DateTime CreationDate { get; }
     }
 }
