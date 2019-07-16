@@ -10,6 +10,11 @@ namespace PingDong.EventBus
 
         }
 
+        public IntegrationEvent(string correlationId)
+            : this(string.Empty, correlationId)
+        {
+        }
+
         public IntegrationEvent(string requestId, string correlationId)
         {
             RequestId = requestId;
