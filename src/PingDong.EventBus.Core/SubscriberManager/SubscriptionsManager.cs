@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using PingDong.CleanArchitect.Core;
 
 namespace PingDong.EventBus.Core
 {
