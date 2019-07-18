@@ -2,7 +2,7 @@
 
 namespace PingDong.EventBus.Core
 {
-    public interface IEventBusMessageDispatcher<in TMessage>
+    public interface IMessageDispatcher<in TMessage>
     {
         Task DispatchAsync(TMessage message);
     }
