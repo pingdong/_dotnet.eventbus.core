@@ -1,29 +1,26 @@
 ﻿using System;
 
-namespace PingDong.EventBus
+namespace PingDong.EventBus.Core
 {
     public class IntegrationEvent
     {
         public IntegrationEvent() 
-            : this(string.Empty, string.Empty)
+            : this(Guid.Empty, Guid.Empty, Guid.Empty)
         {
 
         }
 
-        public IntegrationEvent(string correlationId)
-            : this(string.Empty, correlationId)
-        {
-        }
-
-        public IntegrationEvent(string requestId, string correlationId)
+        public IntegrationEvent(Guid requestId, Guid tenantId, Guid correlationId)
         {
             RequestId = requestId;
             CreationDate = DateTime.UtcNow;
             CorrelationId = correlationId;
+            TenantId = tenantId;
         }
 
-        public string RequestId  { get; set; }
-        public string CorrelationId { get; set; }
+        public Guid RequestId  { get; set; }
+        public Guid CorrelationId { get; set; }
+        public Guid TenantId { get; set; }
         public DateTime CreationDate { get; }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace PingDong.EventBus
+namespace PingDong.EventBus.Core
 {
     public interface IDynamicIntegrationEventHandler
     {
