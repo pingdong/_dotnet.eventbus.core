@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using PingDong.CleanArchitect.Core;
 using Xunit;
 
 namespace PingDong.EventBus.Core.UnitTests
