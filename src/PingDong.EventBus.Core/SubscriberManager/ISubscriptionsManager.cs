@@ -15,6 +15,7 @@ namespace PingDong.EventBus.Core
         void AddSubscriber(Type eventType, Type eventHandler);
         void AddSubscriber<T, THandler>() where T : IntegrationEvent where THandler : IIntegrationEventHandler<T>;
         void AddSubscriber<THandler>(string eventName) where THandler : IDynamicIntegrationEventHandler;
+        void AddSubscriber(string eventName, Type eventHandler);
 
         void RemoveSubscriber<T, THandler>() where T : IntegrationEvent where THandler : IIntegrationEventHandler<T>;
         void RemoveSubscriber<THandler>(string eventName) where THandler : IDynamicIntegrationEventHandler;
