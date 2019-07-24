@@ -36,7 +36,8 @@ namespace PingDong.EventBus.Core.UnitTests
         public void AddGenericTypedSubscriber_Null()
         {
             var submgr = new SubscriptionsManager();
-            Assert.Throws<ArgumentNullException>(() => submgr.AddSubscriber(null, typeof(TestEventHandler)));
+            Type t = null;
+            Assert.Throws<ArgumentNullException>(() => submgr.AddSubscriber(t, typeof(TestEventHandler)));
             Assert.Throws<ArgumentNullException>(() => submgr.AddSubscriber(typeof(TestEvent), null));
         }
 
@@ -55,7 +56,11 @@ namespace PingDong.EventBus.Core.UnitTests
         public void AddDynamicSubscriber_Null()
         {
             var submgr = new SubscriptionsManager();
+            string t = null;
             Assert.Throws<ArgumentNullException>(() => submgr.AddSubscriber<TestDynamicEventHandler>(null));
+            Assert.Throws<ArgumentNullException>(() => submgr.AddSubscriber(t, typeof(TestDynamicEventHandler)));
+            Assert.Throws<ArgumentNullException>(() => submgr.AddSubscriber("", typeof(TestDynamicEventHandler)));
+            Assert.Throws<ArgumentNullException>(() => submgr.AddSubscriber("", typeof(TestDynamicEventHandler)));
         }
 
         #endregion

@@ -60,6 +60,14 @@ namespace PingDong.EventBus.Core
             AddSubscriber(typeof(THandler), eventName, isDynamic: true);
         }
 
+        public void AddSubscriber(string eventName, Type handler)
+        {
+            if (string.IsNullOrWhiteSpace(eventName))
+                throw new ArgumentNullException(nameof(eventName));
+
+            AddSubscriber(handler, eventName, isDynamic: true);
+        }
+
         public void RemoveSubscriber<T, THandler>()
             where THandler : IIntegrationEventHandler<T>
             where T : IntegrationEvent
