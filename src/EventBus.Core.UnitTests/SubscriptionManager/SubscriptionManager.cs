@@ -102,7 +102,7 @@ namespace PingDong.EventBus.Core.UnitTests
         public void HasSubscriber_Null()
         {
             var submgr = new SubscriptionsManager();
-            Assert.Throws<ArgumentNullException>(() => submgr.HasSubscribers(null));
+            Assert.False(submgr.HasSubscribers(null));
         }
 
         #endregion

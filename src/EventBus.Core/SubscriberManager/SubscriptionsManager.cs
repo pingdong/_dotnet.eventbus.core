@@ -10,21 +10,31 @@ namespace PingDong.EventBus.Core
         #region Variables
 
         private readonly Dictionary<string, List<Subscriber>> _handlers;
-        private readonly Dictionary<string, Type> _events;
+        private readonly Dictionary<string, Type> _fixedEventTypes;
+
+        private readonly string _eventTypeSuffix;
 
         #endregion
 
         #region ctor
 
-        public SubscriptionsManager()
+        public SubscriptionsManager(string eventTypeSuffix = "IntegrationEvent")
         {
             _handlers = new Dictionary<string, List<Subscriber>>();
-            _events = new Dictionary<string, Type>();
+            _fixedEventTypes = new Dictionary<string, Type>();
+            _eventTypeSuffix = eventTypeSuffix;
         }
 
         #endregion
 
         #region ISubscriptionsManager
+        
+        public void AddSubscriber<TEvent, THandler>()
+            where TEvent : IntegrationEvent
+            where THandler : IIntegrationEventHandler<TEvent>
+        {
+            AddSubscriber(typeof(TEvent), typeof(THandler));
+        }
 
         public void AddSubscriber(Type eventType, Type eventHandler)
         {
@@ -33,31 +43,17 @@ namespace PingDong.EventBus.Core
             if (eventHandler == null)
                 throw new ArgumentNullException(nameof(eventHandler));
 
-            var eventName = eventType.Name;
+            var eventName = GetEventName(eventType);
 
-            _events.Add(eventName, eventType);
+            _fixedEventTypes.Add(eventName, eventType);
 
-            AddSubscriber(eventHandler, eventName, false);
-        }
-        
-        public void AddSubscriber<T, THandler>()
-            where T : IntegrationEvent
-            where THandler : IIntegrationEventHandler<T>
-        {
-            var eventName = GetEventName<T>();
-
-            _events.Add(eventName, typeof(T));
-
-            AddSubscriber(typeof(THandler), eventName, isDynamic: false);
+            AddSubscriber(eventName, eventHandler, isDynamic:false);
         }
 
         public void AddSubscriber<THandler>(string eventName)
             where THandler : IDynamicIntegrationEventHandler
         {
-            if (string.IsNullOrWhiteSpace(eventName))
-                throw new ArgumentNullException(nameof(eventName));
-
-            AddSubscriber(typeof(THandler), eventName, isDynamic: true);
+            AddSubscriber(eventName, typeof(THandler));
         }
 
         public void AddSubscriber(string eventName, Type handler)
@@ -65,28 +61,24 @@ namespace PingDong.EventBus.Core
             if (string.IsNullOrWhiteSpace(eventName))
                 throw new ArgumentNullException(nameof(eventName));
 
-            AddSubscriber(handler, eventName, isDynamic: true);
+            eventName = GetEventName(eventName);
+
+            AddSubscriber(eventName, handler, isDynamic: true);
         }
 
-        public void RemoveSubscriber<T, THandler>()
-            where THandler : IIntegrationEventHandler<T>
-            where T : IntegrationEvent
+        public void RemoveSubscriber<TEvent, THandler>()
+            where THandler : IIntegrationEventHandler<TEvent>
+            where TEvent : IntegrationEvent
         {
-            var eventName = GetEventName<T>();
+            var eventName = GetEventName<TEvent>();
 
-            var handlerToRemove = FindSubscriberToRemove<T, THandler>();
-            RemoveSubscriber(eventName, handlerToRemove);
+            RemoveSubscriberInternal<THandler>(eventName);
         }
 
         public void RemoveSubscriber<THandler>(string eventName)
             where THandler : IDynamicIntegrationEventHandler
         {
-            if (string.IsNullOrWhiteSpace(eventName))
-                throw new ArgumentNullException(nameof(eventName));
-
-            var handlerToRemove = FindSubscriberToRemove<THandler>(eventName);
-            if (handlerToRemove != null)
-                RemoveSubscriber(eventName, handlerToRemove);
+            RemoveSubscriberInternal<THandler>(eventName);
         }
 
         public IList<Subscriber> GetSubscribers<T>() where T : IntegrationEvent
@@ -101,6 +93,9 @@ namespace PingDong.EventBus.Core
             if (string.IsNullOrWhiteSpace(eventName))
                 throw new ArgumentNullException(nameof(eventName));
 
+            if (!_handlers.ContainsKey(eventName))
+                return null;
+
             return _handlers[eventName];
         }
 
@@ -113,6 +108,11 @@ namespace PingDong.EventBus.Core
 
         public bool HasSubscribers(string eventName)
         {
+            if (string.IsNullOrWhiteSpace(eventName))
+                return false;
+
+            eventName = GetEventName(eventName);
+
             return _handlers.ContainsKey(eventName);
         }
 
@@ -121,19 +121,30 @@ namespace PingDong.EventBus.Core
             if (string.IsNullOrWhiteSpace(eventName))
                 return null;
 
-            return !_events.ContainsKey(eventName) ? null : _events[eventName];
+            eventName = GetEventName(eventName);
+
+            return !_fixedEventTypes.ContainsKey(eventName) ? null : _fixedEventTypes[eventName];
         }
 
         public Type GetEventType<T>() where T : IntegrationEvent
         {
             var eventName = GetEventName<T>();
 
-            return !_events.ContainsKey(eventName) ? null : _events[eventName];
+            return !_fixedEventTypes.ContainsKey(eventName) ? null : _fixedEventTypes[eventName];
         }
         
         public void Clear()
         {
             _handlers.Clear();
+            _fixedEventTypes.Clear();
+        }
+
+        public bool IsDynamic(string eventName)
+        {
+            if (!HasSubscribers(eventName))
+                throw new IndexOutOfRangeException();
+
+            return !_fixedEventTypes.ContainsKey(eventName);
         }
 
         #endregion
@@ -142,34 +153,27 @@ namespace PingDong.EventBus.Core
 
         private string GetEventName<T>()
         {
-            return typeof(T).Name;
+            return typeof(T).Name.Replace(_eventTypeSuffix, "");
         }
 
-        private Subscriber FindSubscriberToRemove<THandler>(string eventName)
-            where THandler : IDynamicIntegrationEventHandler
+        private string GetEventName(string eventName)
         {
-            return FindSubscriber<THandler>(eventName);
+            return eventName.Replace(_eventTypeSuffix, "");
         }
 
-        private Subscriber FindSubscriberToRemove<T, THandler>()
-            where T : IntegrationEvent
-            where THandler : IIntegrationEventHandler<T>
+        private string GetEventName(Type eventType)
         {
-            var eventName = GetEventName<T>();
-
-            return FindSubscriber<THandler>(eventName);
+            return eventType.Name.Replace(_eventTypeSuffix, "");
         }
 
-        private Subscriber FindSubscriber<THandler>(string eventName)
+        private void RemoveSubscriberInternal<THandler>(string eventName)
         {
-            if (!HasSubscribers(eventName))
-                return null;
+            if (string.IsNullOrWhiteSpace(eventName))
+                throw new ArgumentNullException(nameof(eventName));
 
-            return _handlers[eventName].FirstOrDefault(s => s.HandlerType == typeof(THandler));
-        }
+            eventName = GetEventName(eventName);
 
-        private void RemoveSubscriber(string eventName, Subscriber subscriber)
-        {
+            var subscriber = _handlers[eventName].FirstOrDefault(s => s.HandlerType == typeof(THandler));
             if (subscriber == null)
                 return;
 
@@ -182,10 +186,10 @@ namespace PingDong.EventBus.Core
             // If there is no handler for this event,
             //    remove the event from handler
             _handlers.Remove(eventName);
-            _events.Remove(eventName);
+            _fixedEventTypes.Remove(eventName);
         }
 
-        private void AddSubscriber(Type handlerType, string eventName, bool isDynamic)
+        private void AddSubscriber(string eventName, Type handlerType, bool isDynamic)
         {
             // If this is the first handler for this event,
             //    a new handler list needs to be created
