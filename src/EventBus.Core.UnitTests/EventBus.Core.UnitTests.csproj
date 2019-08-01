@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PingDong.EventBus.Core\PingDong.EventBus.Core.csproj" />
+    <ProjectReference Include="..\EventBus.Core\EventBus.Core.csproj" />
   </ItemGroup>
 
 </Project>

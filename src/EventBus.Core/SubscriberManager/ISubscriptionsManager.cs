@@ -8,6 +8,8 @@ namespace PingDong.EventBus.Core
     {
         Type GetEventType(string eventName);
         Type GetEventType<T>() where T : IntegrationEvent;
+
+        bool IsDynamic(string eventName);
         
         bool HasSubscribers<T>() where T : IntegrationEvent;
         bool HasSubscribers(string eventName);
